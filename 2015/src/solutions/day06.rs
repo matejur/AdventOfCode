@@ -72,7 +72,7 @@ impl FromStr for Instruction {
 }
 
 fn part1(input: &str) -> String {
-    let mut lights = [false; 1_000_000];
+    let mut lights = vec![false; 1_000_000];
 
     for line in input.lines() {
         let instr: Instruction = line.parse().unwrap();
@@ -93,7 +93,7 @@ fn part1(input: &str) -> String {
 }
 
 fn part2(input: &str) -> String {
-    let mut lights = [0; 1_000_000];
+    let mut lights = vec![0; 1_000_000];
 
     for line in input.lines() {
         let instr: Instruction = line.parse().unwrap();
@@ -115,4 +115,26 @@ fn part2(input: &str) -> String {
     }
 
     lights.iter().sum::<i32>().to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{part1, part2};
+
+    const INPUT1: &str = "turn on 0,0 through 999,999
+toggle 0,0 through 999,0
+turn off 499,499 through 500,500";
+
+    const INPUT2: &str = "turn on 0,0 through 0,0
+toggle 0,0 through 999,999";
+
+    #[test]
+    fn day06_part1() {
+        assert_eq!(part1(INPUT1), "998996");
+    }
+
+    #[test]
+    fn day06_part2() {
+        assert_eq!(part2(INPUT2), "2000001");
+    }
 }
