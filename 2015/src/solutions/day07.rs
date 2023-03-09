@@ -151,12 +151,29 @@ fn part2(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{part1, part2};
+    use super::{parse_circuit, solve_circuit};
+
+    const INPUT: &str = "123 -> x
+456 -> y
+x AND y -> d
+x OR y -> e
+x LSHIFT 2 -> f
+y RSHIFT 2 -> g
+NOT x -> h
+NOT y -> i";
 
     #[test]
-    fn day07_part1() {}
+    fn day07_part1() {
+        let mut circuit = parse_circuit(INPUT);
+
+        assert_eq!("72", solve_circuit(&"d".to_string(), &mut circuit).to_string());
+        assert_eq!("507", solve_circuit(&"e".to_string(), &mut circuit).to_string());
+        assert_eq!("492", solve_circuit(&"f".to_string(), &mut circuit).to_string());
+        assert_eq!("114", solve_circuit(&"g".to_string(), &mut circuit).to_string());
+        assert_eq!("65412", solve_circuit(&"h".to_string(), &mut circuit).to_string());
+        assert_eq!("65079", solve_circuit(&"i".to_string(), &mut circuit).to_string());
+    }
 
     #[test]
-    #[ignore]
     fn day07_part2() {}
 }
