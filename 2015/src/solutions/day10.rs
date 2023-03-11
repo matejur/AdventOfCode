@@ -59,10 +59,4 @@ mod tests {
         assert_eq!(step("1211"), "111221");
         assert_eq!(step("111221"), "312211");
     }
-
-    #[test]
-    #[ignore]
-    fn day10_part2() {
-
-    }
 }
