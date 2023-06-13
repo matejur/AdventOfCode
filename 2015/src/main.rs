@@ -33,6 +33,7 @@ fn main() {
         18 => solutions::day18::solve(),
         19 => solutions::day19::solve(),
         20 => solutions::day20::solve(),
+        21 => solutions::day21::solve(),
         _ => println!("Day not implemented!"),
     }
 }
