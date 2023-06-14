@@ -180,15 +180,3 @@ fn part2(input: &str) -> String {
 
     reg_b.to_string()
 }
-
-#[cfg(test)]
-mod tests {
-    use super::{part1, part2};
-
-    #[test]
-    fn day23_part1() {}
-
-    #[test]
-    #[ignore]
-    fn day23_part2() {}
-}
