@@ -57,8 +57,8 @@ fn part2(input: &str) -> String {
 
         match longest_replacement {
             Some((from, to)) => {
-                let from = from.clone();
-                let to = to.clone();
+                let from = *from;
+                let to = *to;
                 let position = molecule
                     .match_indices(from)
                     .map(|(i, _)| i)
