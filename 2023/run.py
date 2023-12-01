@@ -10,10 +10,19 @@ YEAR = 2023
 
 
 def download_input(day):
-    input = requests.get(
+    res = requests.get(
         f"https://adventofcode.com/{YEAR}/day/{day}/input", cookies={"session": SESSION}
     )
-    return input.text.strip()
+
+    if res.status_code == 404:
+        print(f"No input for day {day} available")
+        exit()
+
+    if res.status_code == 400:
+        print("Please set AOC_SESSION env variable")
+        exit()
+
+    return res.text.strip()
 
 
 def run_day(day):
@@ -21,8 +30,9 @@ def run_day(day):
         os.mkdir("inputs")
 
     if not os.path.exists(os.path.join("inputs", f"in{day:02}.txt")):
+        puzzle_input = download_input(day)
         with open(os.path.join("inputs", f"in{day:02}.txt"), "w") as f:
-            f.write(download_input(day))
+            f.write(puzzle_input)
 
     with open(os.path.join("inputs", f"in{day:02}.txt")) as f:
         input = f.read()
