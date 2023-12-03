@@ -4,6 +4,7 @@ import datetime
 import requests
 import importlib
 import shutil
+import argparse
 
 SESSION = os.environ.get("AOC_SESSION")
 YEAR = 2023
@@ -25,7 +26,7 @@ def download_input(day):
     return res.text.strip()
 
 
-def run_day(day):
+def read_file(day):
     if not os.path.exists("inputs"):
         os.mkdir("inputs")
 
@@ -35,7 +36,38 @@ def run_day(day):
             f.write(puzzle_input)
 
     with open(os.path.join("inputs", f"in{day:02}.txt")) as f:
-        input = f.read()
+        return f.read()
+
+
+def read_example_stdin():
+    lines = ""
+    print("Please paste the example:")
+    while True:
+        x = input()
+        if x == "":
+            break
+        lines += x + "\n"
+    return lines
+
+
+def get_example(day):
+    example_path = os.path.join("inputs", f"in{day:02}ex.txt")
+    if not os.path.exists(example_path):
+        example = read_example_stdin()
+        with open(example_path, "w") as f:
+            f.write(example)
+            return example
+
+    else:
+        with open(example_path, "r") as f:
+            return f.read()
+
+
+def run_day(day, example):
+    if example:
+        input = get_example(day)
+    else:
+        input = read_file(day)
 
     if os.path.exists(f"day{day:02}.py"):
         module = importlib.import_module(f"day{day:02}")
@@ -49,22 +81,19 @@ def run_day(day):
 
 
 def main():
-    if len(sys.argv) != 2:
-        date = datetime.datetime.now()
+    parser = argparse.ArgumentParser()
 
-        if date.month != 12:
-            print("Running without arguments works only in December")
-            exit()
+    parser.add_argument("-d", "--day", default=datetime.datetime.now().day, type=int)
+    parser.add_argument("-e", "--example", action="store_true")
+    args = parser.parse_args()
 
-        day = date.day
-    else:
-        day = int(sys.argv[1])
+    day = args.day
 
     if not 0 < day < 26:
         print(f"No puzzle for day {day}")
         exit()
 
-    run_day(day)
+    run_day(day, args.example)
 
 
 if __name__ == "__main__":
