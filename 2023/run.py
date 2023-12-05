@@ -1,5 +1,4 @@
 import os
-import sys
 import datetime
 import requests
 import importlib
@@ -41,13 +40,15 @@ def read_file(day):
 
 def read_example_stdin():
     lines = ""
+    last_line = None
     print("Please paste the example:")
     while True:
         x = input()
-        if x == "":
+        if x == "" and last_line == x:
             break
+        last_line = x
         lines += x + "\n"
-    return lines
+    return lines.strip()
 
 
 def get_example(day):
@@ -63,8 +64,8 @@ def get_example(day):
             return f.read()
 
 
-def run_day(day, example):
-    if example:
+def run_day(day, args):
+    if args.example:
         input = get_example(day)
     else:
         input = read_file(day)
@@ -72,9 +73,15 @@ def run_day(day, example):
     if os.path.exists(f"day{day:02}.py"):
         module = importlib.import_module(f"day{day:02}")
 
+        start = datetime.datetime.now()
         print("-" * 10 + f" Day {day} " + "-" * 10)
         print(f"Part 1: {module.part1(input)}")
         print(f"Part 2: {module.part2(input)}")
+
+        if args.time:
+            print(
+                f"Execution time: {(datetime.datetime.now() - start).total_seconds() * 1000:.4f}ms"
+            )
     else:
         shutil.copy("template.py", f"day{day:02}.py")
         print(f"Created python file: day{day:02}.py. Start coding :)")
@@ -85,6 +92,7 @@ def main():
 
     parser.add_argument("-d", "--day", default=datetime.datetime.now().day, type=int)
     parser.add_argument("-e", "--example", action="store_true")
+    parser.add_argument("-t", "--time", action="store_true")
     args = parser.parse_args()
 
     day = args.day
@@ -93,7 +101,7 @@ def main():
         print(f"No puzzle for day {day}")
         exit()
 
-    run_day(day, args.example)
+    run_day(day, args)
 
 
 if __name__ == "__main__":
