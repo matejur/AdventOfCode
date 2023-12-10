@@ -11,7 +11,11 @@ YEAR = 2023
 
 def download_input(day):
     res = requests.get(
-        f"https://adventofcode.com/{YEAR}/day/{day}/input", cookies={"session": SESSION}
+        f"https://adventofcode.com/{YEAR}/day/{day}/input",
+        cookies={"session": SESSION},
+        headers={
+            "User-Agent": "Input downloader https://github.com/matejur/AdventOfCode/blob/master/2023/run.py by matej.urbas00@gmail.com"
+        },
     )
 
     if res.status_code == 404:
