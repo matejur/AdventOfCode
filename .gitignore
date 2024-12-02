@@ -1,4 +1,6 @@
+.vscode/
 in*.txt
 input.txt
 target/
 __pycache__/
+main
