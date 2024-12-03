@@ -7,6 +7,7 @@
 #include "solutions/day01.h"
 #include "solutions/day02.h"
 #include "solutions/day03.h"
+// SED MARKER 1
 
 using namespace std;
 
@@ -14,7 +15,7 @@ map<int, function<void(const vector<string>)>> days = {
     {1, day01::run},
     {2, day02::run},
     {3, day03::run},
-};
+};  // SED MARKER 2
 
 void run_day(int day) {
     string input_path = "inputs/in" + to_string(day) + ".txt";
