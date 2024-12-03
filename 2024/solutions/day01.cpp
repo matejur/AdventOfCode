@@ -59,6 +59,7 @@ string part2(const vector<string> &input) {
 }
 
 void run(const vector<string> &input) {
+    cout << "----- Day 1 -----" << endl;
     cout << "Part 1: " << part1(input) << endl;
     cout << "Part 2: " << part2(input) << endl;
 }
