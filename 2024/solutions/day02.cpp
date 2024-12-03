@@ -5,14 +5,12 @@
 #include <string>
 #include <vector>
 
+#include "../runner.cpp"
 #include "../utils.cpp"
 
 using namespace std;
 
 class Day02 : public Runner {
-   public:
-    Day02() : Runner(2) {}
-
     string part1(ifstream &input) override {
         int safe = 0;
         for (string line; getline(input, line);) {

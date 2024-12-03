@@ -4,12 +4,11 @@
 #include <string>
 #include <vector>
 
+#include "../runner.cpp"
+
 using namespace std;
 
 class Day01 : public Runner {
-   public:
-    Day01() : Runner(1) {}
-
     string part1(ifstream &input) override {
         vector<int> left;
         vector<int> right;
