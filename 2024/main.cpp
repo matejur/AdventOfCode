@@ -1,10 +1,42 @@
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <string>
 
-#include "all_days.cpp"
+#include "solutions/day01.h"
+#include "solutions/day02.h"
+#include "solutions/day03.h"
 
 using namespace std;
+
+map<int, function<void(const vector<string>)>> days = {
+    {1, day01::run},
+    {2, day02::run},
+    {3, day03::run},
+};
+
+void run_day(int day) {
+    string input_path = "inputs/in" + to_string(day) + ".txt";
+    ifstream input_file(input_path);
+    if (!input_file.is_open()) {
+        cerr << "Could not open file: " << input_path << endl;
+        return;
+    }
+
+    vector<string> input;
+    for (string line; getline(input_file, line);) {
+        input.push_back(line);
+    }
+
+    auto it = days.find(day);
+    if (it == days.end()) {
+        cerr << "Day " << day << " not found" << endl;
+        return;
+    }
+
+    it->second(input);
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -12,19 +44,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    string day_string = argv[1];
-    string input_path = "inputs/in" + day_string + ".txt";
-    ifstream input(input_path);
-    if (!input.is_open()) {
-        cerr << "Could not open file: " << input_path << endl;
-        return 1;
+    string arg = argv[1];
+    if (arg == "all") {
+        for (int i = 1; i <= days.size(); i++) {
+            run_day(i);
+        }
+    } else {
+        run_day(stoi(arg));
     }
-
-    Runner *runner = get_runner(stoi(day_string));
-    cout << "Part 1: " << runner->part1(input) << endl;
-
-    input.clear();
-    input.seekg(0);
-
-    cout << "Part 2: " << runner->part2(input) << endl;
 }

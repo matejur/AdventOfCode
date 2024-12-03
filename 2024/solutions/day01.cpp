@@ -1,62 +1,66 @@
+#include "day01.h"
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "../runner.cpp"
-
 using namespace std;
+namespace day01 {
+string part1(const vector<string> &input) {
+    vector<int> left;
+    vector<int> right;
 
-class Day01 : public Runner {
-    string part1(ifstream &input) override {
-        vector<int> left;
-        vector<int> right;
-
-        for (string line; getline(input, line);) {
-            if (line.empty()) {
-                continue;
-            }
-            int space = line.find(' ');
-            left.push_back(stoi(line.substr(0, space)));
-            right.push_back(stoi(line.substr(space + 1)));
+    for (const string &line : input) {
+        if (line.empty()) {
+            continue;
         }
-
-        sort(left.begin(), left.end());
-        sort(right.begin(), right.end());
-
-        int answer = 0;
-        for (int i = 0; i < left.size(); i++) {
-            answer += abs(left[i] - right[i]);
-        }
-
-        return to_string(answer);
+        int space = line.find(' ');
+        left.push_back(stoi(line.substr(0, space)));
+        right.push_back(stoi(line.substr(space + 1)));
     }
 
-    string part2(ifstream &input) override {
-        vector<int> left;
-        vector<int> right;
+    sort(left.begin(), left.end());
+    sort(right.begin(), right.end());
 
-        for (string line; getline(input, line);) {
-            if (line.empty()) {
-                continue;
-            }
-            int space = line.find(' ');
-            left.push_back(stoi(line.substr(0, space)));
-            right.push_back(stoi(line.substr(space + 1)));
-        }
-
-        int answer = 0;
-        for (int i = 0; i < left.size(); i++) {
-            int left_value = left[i];
-            for (int j = 0; j < right.size(); j++) {
-                int right_value = right[j];
-                if (left_value == right_value) {
-                    answer += left_value;
-                }
-            }
-        }
-
-        return to_string(answer);
+    int answer = 0;
+    for (int i = 0; i < left.size(); i++) {
+        answer += abs(left[i] - right[i]);
     }
-};
+
+    return to_string(answer);
+}
+
+string part2(const vector<string> &input) {
+    vector<int> left;
+    vector<int> right;
+
+    for (const string &line : input) {
+        if (line.empty()) {
+            continue;
+        }
+        int space = line.find(' ');
+        left.push_back(stoi(line.substr(0, space)));
+        right.push_back(stoi(line.substr(space + 1)));
+    }
+
+    int answer = 0;
+    for (int i = 0; i < left.size(); i++) {
+        int left_value = left[i];
+        for (int j = 0; j < right.size(); j++) {
+            int right_value = right[j];
+            if (left_value == right_value) {
+                answer += left_value;
+            }
+        }
+    }
+
+    return to_string(answer);
+}
+
+void run(const vector<string> &input) {
+    cout << "Part 1: " << part1(input) << endl;
+    cout << "Part 2: " << part2(input) << endl;
+}
+};  // namespace day01

@@ -4,3 +4,4 @@ input.txt
 target/
 __pycache__/
 main
+build/
