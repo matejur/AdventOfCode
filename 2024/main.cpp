@@ -7,6 +7,7 @@
 #include "solutions/day01.h"
 #include "solutions/day02.h"
 #include "solutions/day03.h"
+#include "solutions/day04.h"
 // SED MARKER 1
 
 using namespace std;
@@ -15,19 +16,43 @@ map<int, function<void(const vector<string>)>> days = {
     {1, day01::run},
     {2, day02::run},
     {3, day03::run},
+    {4, day04::run},
 };  // SED MARKER 2
 
-void run_day(int day) {
-    string input_path = "inputs/in" + to_string(day) + ".txt";
-    ifstream input_file(input_path);
-    if (!input_file.is_open()) {
-        cerr << "Could not open file: " << input_path << endl;
-        return;
-    }
-
+void run_day(int day, bool example) {
     vector<string> input;
-    for (string line; getline(input_file, line);) {
-        input.push_back(line);
+    if (example) {
+        string example_path = "inputs/in" + to_string(day) + "_ex.txt";
+        ifstream example_file(example_path);
+        if (!example_file.is_open()) {
+            cout << "Paste the example input for day " << day
+                 << " and press Ctrl+D" << endl;
+            for (string line; getline(cin, line);) {
+                input.push_back(line);
+            }
+            cout << endl;
+
+            // Write the input to the example file
+            ofstream example_file(example_path);
+            for (const string &line : input) {
+                example_file << line << endl;
+            }
+        } else {
+            for (string line; getline(example_file, line);) {
+                input.push_back(line);
+            }
+        }
+    } else {
+        string input_path = "inputs/in" + to_string(day) + ".txt";
+        ifstream input_file(input_path);
+        if (!input_file.is_open()) {
+            cerr << "Could not open file: " << input_path << endl;
+            return;
+        }
+
+        for (string line; getline(input_file, line);) {
+            input.push_back(line);
+        }
     }
 
     auto it = days.find(day);
@@ -40,17 +65,28 @@ void run_day(int day) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        cerr << "Usage: " << argv[0] << " <day>" << endl;
-        return 1;
+    if (argc == 1) {
+        cerr << "Running all days" << endl;
+        for (int i = 1; i <= days.size(); i++) {
+            run_day(i, false);
+        }
+        return 0;
     }
 
-    string arg = argv[1];
-    if (arg == "all") {
-        for (int i = 1; i <= days.size(); i++) {
-            run_day(i);
+    if (argc == 2) {
+        try {
+            int day = stoi(argv[1]);
+            run_day(day, false);
+        } catch (invalid_argument &e) {
+            cerr << "Invalid day: " << argv[1] << endl;
         }
     } else {
-        run_day(stoi(arg));
+        string flag = argv[2];
+        try {
+            int day = stoi(argv[1]);
+            run_day(day, flag == "-e");
+        } catch (invalid_argument &e) {
+            cerr << "Invalid day: " << argv[1] << endl;
+        }
     }
 }
