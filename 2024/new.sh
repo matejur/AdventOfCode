@@ -70,3 +70,5 @@ EOF
 
 sed -i "/\/\/ SED MARKER 1/i#include \"solutions/day$day_string.h\"" main.cpp
 sed -i "/};  \/\/ SED MARKER 2/i\ \ \ \ {$arg1, day$day_string::run}," main.cpp
+
+cmake . build

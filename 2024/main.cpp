@@ -8,6 +8,7 @@
 #include "solutions/day02.h"
 #include "solutions/day03.h"
 #include "solutions/day04.h"
+#include "solutions/day05.h"
 // SED MARKER 1
 
 using namespace std;
@@ -17,6 +18,7 @@ map<int, function<void(const vector<string>)>> days = {
     {2, day02::run},
     {3, day03::run},
     {4, day04::run},
+    {5, day05::run},
 };  // SED MARKER 2
 
 void run_day(int day, bool example) {

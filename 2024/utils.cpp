@@ -15,3 +15,13 @@ vector<int> parse_numbers(string line) {
     }
     return numbers;
 }
+
+vector<int> parseNumbersDelimiter(string line, char delimiter) {
+    vector<int> parts;
+    stringstream ss(line);
+    string part;
+    while (getline(ss, part, delimiter)) {
+        parts.push_back(stoi(part));
+    }
+    return parts;
+}
