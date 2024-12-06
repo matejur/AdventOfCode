@@ -1,3 +1,4 @@
+#include <chrono>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -9,16 +10,14 @@
 #include "solutions/day03.h"
 #include "solutions/day04.h"
 #include "solutions/day05.h"
+#include "solutions/day06.h"
 // SED MARKER 1
 
 using namespace std;
 
 map<int, function<void(const vector<string>)>> days = {
-    {1, day01::run},
-    {2, day02::run},
-    {3, day03::run},
-    {4, day04::run},
-    {5, day05::run},
+    {1, day01::run}, {2, day02::run}, {3, day03::run},
+    {4, day04::run}, {5, day05::run}, {6, day06::run},
 };  // SED MARKER 2
 
 void run_day(int day, bool example) {
@@ -63,7 +62,12 @@ void run_day(int day, bool example) {
         return;
     }
 
+    auto start = chrono::high_resolution_clock::now();
     it->second(input);
+    auto end = chrono::high_resolution_clock::now();
+    auto time =
+        chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    cout << "Time: " << time << "ms" << endl;
 }
 
 int main(int argc, char *argv[]) {
