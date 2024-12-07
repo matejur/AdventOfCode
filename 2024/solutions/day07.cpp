@@ -9,42 +9,28 @@
 
 using namespace std;
 namespace day07 {
-bool canBeTrue(int i, long testValue, const vector<int> &equation) {
-    if (i == 0) {
-        return equation[i] == testValue;
-    }
-    if (testValue % equation[i] == 0 &&
-        canBeTrue(i - 1, testValue / equation[i], equation)) {
-        return true;
-    }
-    if (testValue - equation[i] > 0 &&
-        canBeTrue(i - 1, testValue - equation[i], equation)) {
-        return true;
-    }
-
-    return false;
-}
-
-bool canBeTrueConcat(int i, long testValue, const vector<int> &equation) {
+bool canBeTrue(int i, long testValue, const vector<int> &equation,
+               bool concat) {
     int curr = equation[i];
     if (i == 0) {
         return curr == testValue;
     }
     if (testValue % curr == 0 &&
-        canBeTrueConcat(i - 1, testValue / equation[i], equation)) {
+        canBeTrue(i - 1, testValue / equation[i], equation, concat)) {
         return true;
     }
-    if (testValue > curr &&
-        canBeTrueConcat(i - 1, testValue - equation[i], equation)) {
+    if (testValue - curr > 0 &&
+        canBeTrue(i - 1, testValue - equation[i], equation, concat)) {
         return true;
     }
 
     int curDigits = log10(curr) + 1;
     int valueDigits = log10(testValue) + 1;
 
-    if (valueDigits > curDigits &&
+    if (concat && valueDigits > curDigits &&
         testValue % (int)pow(10, curDigits) == curr &&
-        canBeTrueConcat(i - 1, testValue / (int)pow(10, curDigits), equation)) {
+        canBeTrue(i - 1, testValue / (int)pow(10, curDigits), equation,
+                  concat)) {
         return true;
     }
 
@@ -58,7 +44,7 @@ string part1(const vector<string> &input) {
         long testValue = stol(line.substr(0, colon));
         vector<int> equation =
             parseNumbersDelimiter(line.substr(colon + 2), ' ');
-        if (canBeTrue(equation.size() - 1, testValue, equation)) {
+        if (canBeTrue(equation.size() - 1, testValue, equation, false)) {
             answer += testValue;
         }
     }
@@ -72,7 +58,7 @@ string part2(const vector<string> &input) {
         long testValue = stol(line.substr(0, colon));
         vector<int> equation =
             parseNumbersDelimiter(line.substr(colon + 2), ' ');
-        if (canBeTrueConcat(equation.size() - 1, testValue, equation)) {
+        if (canBeTrue(equation.size() - 1, testValue, equation, true)) {
             answer += testValue;
         }
     }
