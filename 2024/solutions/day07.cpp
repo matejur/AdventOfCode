@@ -9,29 +9,46 @@
 
 using namespace std;
 namespace day07 {
-bool canBeTrue(int i, long value, long testValue, const vector<int> &equation) {
-    if (i == equation.size()) {
-        return value == testValue;
+bool canBeTrue(int i, long testValue, const vector<int> &equation) {
+    if (i == 0) {
+        return equation[i] == testValue;
     }
-    return canBeTrue(i + 1, value * equation[i], testValue, equation) ||
-           canBeTrue(i + 1, value + equation[i], testValue, equation);
+    if (testValue % equation[i] == 0 &&
+        canBeTrue(i - 1, testValue / equation[i], equation)) {
+        return true;
+    }
+    if (testValue - equation[i] > 0 &&
+        canBeTrue(i - 1, testValue - equation[i], equation)) {
+        return true;
+    }
+
+    return false;
 }
 
-bool canBeTrueConcat(int i, long value, long testValue,
-                     const vector<int> &equation) {
-    if (value > testValue) {
-        return false;
+bool canBeTrueConcat(int i, long testValue, const vector<int> &equation) {
+    int curr = equation[i];
+    if (i == 0) {
+        return curr == testValue;
+    }
+    if (testValue % curr == 0 &&
+        canBeTrueConcat(i - 1, testValue / equation[i], equation)) {
+        return true;
+    }
+    if (testValue > curr &&
+        canBeTrueConcat(i - 1, testValue - equation[i], equation)) {
+        return true;
     }
 
-    if (i == equation.size()) {
-        return value == testValue;
+    int curDigits = log10(curr) + 1;
+    int valueDigits = log10(testValue) + 1;
+
+    if (valueDigits > curDigits &&
+        testValue % (int)pow(10, curDigits) == curr &&
+        canBeTrueConcat(i - 1, testValue / (int)pow(10, curDigits), equation)) {
+        return true;
     }
 
-    long concatValue =
-        value * pow(10, (int)log10(equation[i]) + 1) + equation[i];
-    return canBeTrueConcat(i + 1, concatValue, testValue, equation) ||
-           canBeTrueConcat(i + 1, value * equation[i], testValue, equation) ||
-           canBeTrueConcat(i + 1, value + equation[i], testValue, equation);
+    return false;
 }
 
 string part1(const vector<string> &input) {
@@ -41,7 +58,7 @@ string part1(const vector<string> &input) {
         long testValue = stol(line.substr(0, colon));
         vector<int> equation =
             parseNumbersDelimiter(line.substr(colon + 2), ' ');
-        if (canBeTrue(1, equation[0], testValue, equation)) {
+        if (canBeTrue(equation.size() - 1, testValue, equation)) {
             answer += testValue;
         }
     }
@@ -55,7 +72,7 @@ string part2(const vector<string> &input) {
         long testValue = stol(line.substr(0, colon));
         vector<int> equation =
             parseNumbersDelimiter(line.substr(colon + 2), ' ');
-        if (canBeTrueConcat(0, 0, testValue, equation)) {
+        if (canBeTrueConcat(equation.size() - 1, testValue, equation)) {
             answer += testValue;
         }
     }
