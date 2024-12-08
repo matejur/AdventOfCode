@@ -12,17 +12,20 @@ if [ $arg1 -lt 10 ]; then
     day_string="0$day_string"
 fi
 
+if [ -z "$AOC_SESSION" ]; then
+    echo "AOC_SESSION not set"
+elif [ ! -f "inputs/in$arg1.txt" ]; then
+    echo "Downloading input"
+    wget "https://adventofcode.com/2024/day/$arg1/input" --header "Cookie: session=$AOC_SESSION" -O "inputs/in$arg1.txt"
+else
+    echo "Input already exists"
+fi
+
 if [ -f "solutions/day$day_string.cpp" ]; then
     echo "Day $day_string already exists"
     exit 1
 fi
 
-if [ -z "$AOC_SESSION" ]; then
-    echo "AOC_SESSION environment variable not set"
-    exit 1
-fi
-
-wget "https://adventofcode.com/2024/day/$arg1/input" --header "Cookie: session=$AOC_SESSION" -O "inputs/in$arg1.txt"
 
 if [ $? -ne 0 ]; then
     echo "Failed to download input"
