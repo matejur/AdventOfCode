@@ -7,4 +7,6 @@
 std::vector<int> parse_numbers(std::string line);
 std::vector<int> parseNumbersDelimiter(std::string line, char delimiter);
 
+std::vector<long> extractAllNumbers(std::string line);
+
 #endif

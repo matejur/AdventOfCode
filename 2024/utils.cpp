@@ -1,8 +1,8 @@
 #include "utils.h"
 
+#include <regex>
 #include <sstream>
 #include <string>
-#include <vector>
 
 using namespace std;
 
@@ -24,4 +24,21 @@ vector<int> parseNumbersDelimiter(string line, char delimiter) {
         parts.push_back(stoi(part));
     }
     return parts;
+}
+
+vector<long> extractAllNumbers(string line) {
+    vector<long> numbers;
+
+    for (int i = 0; i < line.size(); i++) {
+        if (isdigit(line[i])) {
+            int j = i;
+            while (j < line.size() && (isdigit(line[j]))) {
+                j++;
+            }
+            numbers.push_back(stol(line.substr(i, j - i)));
+            i = j;
+        }
+    }
+
+    return numbers;
 }
