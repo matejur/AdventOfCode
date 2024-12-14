@@ -30,9 +30,10 @@ vector<long> extractAllNumbers(string line) {
     vector<long> numbers;
 
     for (int i = 0; i < line.size(); i++) {
-        if (isdigit(line[i])) {
+        if (isdigit(line[i]) ||
+            (line[i] == '-' && i != line.size() - 1 && isdigit(line[i + 1]))) {
             int j = i;
-            while (j < line.size() && (isdigit(line[j]))) {
+            while (j < line.size() && (isdigit(line[j]) || line[j] == '-')) {
                 j++;
             }
             numbers.push_back(stol(line.substr(i, j - i)));
