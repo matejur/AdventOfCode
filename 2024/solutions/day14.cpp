@@ -1,6 +1,7 @@
 #include "day14.h"
 
 #include <iostream>
+#include <limits>
 #include <numeric>
 #include <string>
 #include <vector>
@@ -12,38 +13,6 @@ namespace day14 {
 
 int width = 101;
 int height = 103;
-
-class Robot {
-    int vx, vy;
-
-   public:
-    int x, y;
-    Robot(string start) {
-        auto t = extractAllNumbers(start);
-        x = t[0];
-        y = t[1];
-        vx = t[2];
-        vy = t[3];
-    }
-
-    void move(int steps) {
-        x = ((x + vx * steps) % width + width) % width;
-        y = ((y + vy * steps) % height + height) % height;
-    }
-
-    int getQuadrant() {
-        if (x < width / 2 && y < height / 2) {
-            return 0;
-        } else if (x > width / 2 && y < height / 2) {
-            return 1;
-        } else if (x < width / 2 && y > height / 2) {
-            return 2;
-        } else if (x > width / 2 && y > height / 2) {
-            return 3;
-        }
-        return 4;
-    };
-};
 
 int safetyFactor(vector<vector<long>> robots, int moves) {
     int q1 = 0;
@@ -95,25 +64,57 @@ string part2(const vector<string> &input) {
         width = 11;
         height = 7;
     }
+
     vector<vector<long>> robots;
     for (auto &line : input) {
         auto robot = extractAllNumbers(line);
         robots.push_back(robot);
     }
 
-    int minSafety = INT32_MAX;
-    int minSec = 0;
+    int lowestXVariance = numeric_limits<int>::max();
+    int lowestYVariance = numeric_limits<int>::max();
+    int xSeconds = 0;
+    int ySeconds = 0;
 
-    for (int i = 1; i < width * height; i++) {
-        int safety = safetyFactor(robots, i);
+    for (int s = 1; s < max(width, height); s++) {
+        int xs[robots.size()];
+        int ys[robots.size()];
+        for (int i = 0; i < robots.size(); i++) {
+            xs[i] = ((robots[i][0] + s * robots[i][2]) % width + width) % width;
+            ys[i] =
+                ((robots[i][1] + s * robots[i][3]) % height + height) % height;
+        }
 
-        if (safety < minSafety) {
-            minSafety = safety;
-            minSec = i;
+        int meanX = accumulate(xs, xs + robots.size(), 0) / robots.size();
+        int meanY = accumulate(ys, ys + robots.size(), 0) / robots.size();
+
+        int varX = 0;
+        int varY = 0;
+        for (int i = 0; i < robots.size(); i++) {
+            varX += (xs[i] - meanX) * (xs[i] - meanX);
+            varY += (ys[i] - meanY) * (ys[i] - meanY);
+        }
+
+        if (varX < lowestXVariance) {
+            lowestXVariance = varX;
+            xSeconds = s;
+        }
+        if (varY < lowestYVariance) {
+            lowestYVariance = varY;
+            ySeconds = s;
         }
     }
 
-    return to_string(minSec);
+    // Naive chinese remainder theorem
+    int answer = 0;
+    while (true) {
+        if (answer % width == xSeconds && answer % height == ySeconds) {
+            break;
+        }
+        answer++;
+    }
+
+    return to_string(answer);
 }
 
 void run(const vector<string> &input) {
