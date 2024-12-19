@@ -43,3 +43,18 @@ vector<long> extractAllNumbers(string line) {
 
     return numbers;
 }
+
+vector<string> splitString(const string line, string delimiter) {
+    vector<string> parts;
+    size_t pos_start = 0;
+    size_t pos_end, delim_len = delimiter.length();
+
+    while ((pos_end = line.find(delimiter, pos_start)) != string::npos) {
+        string token = line.substr(pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        parts.push_back(token);
+    }
+
+    parts.push_back(line.substr(pos_start));
+    return parts;
+}
