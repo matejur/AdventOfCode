@@ -41,7 +41,7 @@ map<pair<int, int>, int> calculateDistances(const vector<string> &grid,
 }
 
 void cheatForPicoseconds(map<int, int> &outCheats, int picoseconds,
-                         map<pair<int, int>, int> distancesToEnd, int x, int y,
+                         map<pair<int, int>, int> &distancesToEnd, int x, int y,
                          int distFromStart, int shortestPath) {
     for (int dy = -picoseconds; dy <= picoseconds; dy++) {
         int maxDx = picoseconds - abs(dy);
