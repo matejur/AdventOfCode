@@ -27,6 +27,7 @@
 #include "solutions/day20.h"
 #include "solutions/day21.h"
 #include "solutions/day22.h"
+#include "solutions/day23.h"
 // SED MARKER 1
 
 using namespace std;
@@ -37,7 +38,7 @@ map<int, function<void(const vector<string>)>> days = {
     {9, day09::run},  {10, day10::run}, {11, day11::run}, {12, day12::run},
     {13, day13::run}, {14, day14::run}, {15, day15::run}, {16, day16::run},
     {17, day17::run}, {18, day18::run}, {19, day19::run}, {20, day20::run},
-    {21, day21::run}, {22, day22::run},
+    {21, day21::run}, {22, day22::run}, {23, day23::run},
 };  // SED MARKER 2
 
 void run_day(int day, bool example) {
