@@ -116,55 +116,93 @@ string getOutput(string wire1, string wire2, string op,
     return "";
 }
 
+vector<string> forward(string x, string y, string c,
+                       map<tuple<string, string, string>, string> gates) {
+    auto beforeSum = getOutput(x, y, "XOR", gates);
+    auto beforeCarry1 = getOutput(x, y, "AND", gates);
+
+    auto beforeCarry2 = getOutput(beforeSum, c, "AND", gates);
+    auto sum = getOutput(beforeSum, c, "XOR", gates);
+    string carry = getOutput(beforeCarry1, beforeCarry2, "OR", gates);
+    return {sum, carry, beforeSum, beforeCarry1, beforeCarry2};
+}
+
 string part2(const vector<string> &input) {
     auto gates = parseGates(input);
 
-    // first, there is a half adder
-    auto s0 = getOutput("x00", "y00", "XOR", gates);
-    if (s0.empty() || s0 != "z00") {
-        cout << "Problem with first half adder" << endl;
+    map<string, tuple<string, string, string>> reverse;
+    for (const auto &[key, value] : gates) {
+        string wire1 = get<0>(key);
+        string gate = get<1>(key);
+        string wire2 = get<2>(key);
+        string output = value;
+
+        reverse[output] = key;
     }
 
-    // check full adders?
+    set<string> swaps;
     string prevCarryWire = getOutput("x00", "y00", "AND", gates);
     for (int i = 1; i < 45; i++) {
         string xStr = "x" + to_string(i);
         string yStr = "y" + to_string(i);
+        string zStr = "z" + to_string(i);
         if (i < 10) {
             xStr = "x0" + to_string(i);
             yStr = "y0" + to_string(i);
+            zStr = "z0" + to_string(i);
         }
 
-        auto beforeSum = getOutput(xStr, yStr, "XOR", gates);
-        auto beforeCarry1 = getOutput(xStr, yStr, "AND", gates);
+        auto out = forward(xStr, yStr, prevCarryWire, gates);
+        string sum = out[0];
+        string carry = out[1];
 
-        auto beforeCarry2 = getOutput(beforeSum, prevCarryWire, "AND", gates);
-        auto sum = getOutput(beforeSum, prevCarryWire, "XOR", gates);
+        if (sum != zStr) {
+            bool found = false;
+            for (const string &w1 : out) {
+                if (found) {
+                    break;
+                }
+                for (const string &w2 : out) {
+                    if (w1 == w2) {
+                        continue;
+                    }
 
-        if (sum[0] != 'z') {
-            cout << endl << "Iteration " << i << endl;
-            cout << xStr << " XOR " << yStr << "->" << beforeSum << endl;
-            cout << xStr << " AND " << yStr << "->" << beforeCarry1 << endl;
-            cout << beforeSum << " AND " << prevCarryWire << "->"
-                 << beforeCarry2 << endl;
-            cout << beforeSum << " XOR " << prevCarryWire << "->" << sum
-                 << endl;
-        }
-        prevCarryWire = getOutput(beforeCarry1, beforeCarry2, "OR", gates);
-        if (sum[0] != 'z') {
-            cout << beforeCarry1 << " OR " << beforeCarry2 << "->"
-                 << prevCarryWire << endl;
+                    auto it1 = reverse.find(w1);
+                    auto it2 = reverse.find(w2);
 
-            cout << "Fix the input" << endl;
-            exit(0);
+                    if (it1 != reverse.end() && it2 != reverse.end()) {
+                        auto key1 = it1->second;
+                        auto key2 = it2->second;
+
+                        gates[key1] = w2;
+                        gates[key2] = w1;
+
+                        auto out = forward(xStr, yStr, prevCarryWire, gates);
+                        string sum = out[0];
+                        string carry = out[1];
+                        if (sum == zStr) {
+                            swaps.insert(w1);
+                            swaps.insert(w2);
+                            prevCarryWire = carry;
+                            found = true;
+                            break;
+                        }
+                        gates[key1] = w1;
+                        gates[key2] = w2;
+                    }
+                }
+            }
+        } else {
+            prevCarryWire = carry;
         }
     }
 
-    set<string> answer = {"z09", "gwh", "wgb", "wbw",
-                          "z21", "rcb", "z39", "jct"};
+    if (swaps.size() != 8) {
+        return "Failed to find solution with this implementation";
+    }
 
     string ans = "";
-    for (const string &wire : answer) {
+    for (const string &wire : swaps) {
         ans += wire + ",";
     }
 
@@ -174,6 +212,6 @@ string part2(const vector<string> &input) {
 void run(const vector<string> &input) {
     cout << "----- Day 24 -----" << endl;
     cout << "Part 1: " << part1(input) << endl;
-    cout << "Part 2: " << part2(input) << " (SOLVED BY HAND!!!)" << endl;
+    cout << "Part 2: " << part2(input) << endl;
 }
 };  // namespace day24
