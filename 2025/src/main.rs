@@ -1,0 +1,91 @@
+use std::{env, fs, io};
+
+use anyhow::{Context, Result, bail};
+use clap::Parser;
+use time::OffsetDateTime;
+
+use aoc_2025::solutions::{day01, day02};
+
+#[derive(Parser, Debug)]
+pub struct Args {
+    pub day: Option<u8>,
+    #[arg(short, long)]
+    pub example: bool,
+}
+
+fn download_input(day: u8, path: &str) -> Result<String> {
+    let session = env::var("AOC_SESSION").context("Set AOC_SESSION env variable")?;
+
+    let url = format!("https://adventofcode.com/2025/day/{day}/input");
+
+    let client = reqwest::blocking::Client::new();
+    let text = client
+        .get(&url)
+        .header("Cookie", format!("session={session}"))
+        .header("User-Agent", "matej.urbas00@gmail.com")
+        .send()?
+        .text()?;
+
+    fs::create_dir_all("inputs")?;
+    fs::write(path, &text)?;
+
+    Ok(text)
+}
+
+fn get_input(day: u8) -> Result<String> {
+    let path = format!("inputs/day{day:02}.txt");
+
+    if fs::exists(&path)? {
+        return fs::read_to_string(&path).context("Failed to read input file");
+    };
+
+    download_input(day, &path)
+}
+
+fn get_example(day: u8) -> Result<String> {
+    let path = format!("examples/day{day:02}.txt");
+
+    if fs::exists(&path)? {
+        return fs::read_to_string(&path).context("Failed to read example file");
+    };
+
+    println!("Please paste the example:");
+
+    let example = io::read_to_string(io::stdin())?;
+
+    fs::create_dir_all("examples")?;
+    fs::write(path, &example)?;
+
+    Ok(example)
+}
+
+fn main() -> Result<()> {
+    let args = Args::parse();
+
+    let day = match args.day {
+        Some(day) => day,
+        None => {
+            let day = OffsetDateTime::now_utc().day();
+            eprintln!("Day not provided, running day {day}");
+            day
+        }
+    };
+
+    let input = if args.example {
+        get_example(day)?
+    } else {
+        get_input(day)?
+    };
+    let input = input.trim();
+
+    let (part1, part2) = match day {
+        1 => day01::solve(&input)?,
+        2 => day02::solve(&input)?,
+        _ => bail!("Day {day} not implemented"),
+    };
+
+    println!("Part 1: {part1}");
+    println!("Part 2: {part2}");
+
+    Ok(())
+}

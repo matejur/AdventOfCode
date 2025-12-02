@@ -1,0 +1,17 @@
+[package]
+name = "aoc-2025"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+clap = { version = "4.5.53", features = ["derive"] }
+reqwest = { version = "0.12.24", features = ["blocking"] }
+time = "0.3.44"
+
+[dev-dependencies]
+divan = "0.1.21"
+
+[[bench]]
+name = "aoc"
+harness = false
