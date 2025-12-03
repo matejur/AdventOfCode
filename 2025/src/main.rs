@@ -79,9 +79,9 @@ fn main() -> Result<()> {
     let input = input.trim();
 
     let (part1, part2) = match day {
-        1 => day01::solve(&input)?,
-        2 => day02::solve(&input)?,
-        3 => day03::solve(&input)?,
+        1 => day01::solve(input)?,
+        2 => day02::solve(input)?,
+        3 => day03::solve(input)?,
         _ => bail!("Day {day} not implemented"),
     };
 
