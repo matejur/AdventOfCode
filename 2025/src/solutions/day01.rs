@@ -2,7 +2,7 @@ use anyhow::{Result, bail};
 use std::str::FromStr;
 
 #[derive(Debug)]
-struct Instruction(i32, u16);
+struct Instruction(i32);
 
 impl FromStr for Instruction {
     type Err = anyhow::Error;
@@ -10,13 +10,13 @@ impl FromStr for Instruction {
     fn from_str(s: &str) -> Result<Self> {
         let (dir, rest) = s.split_at(1);
 
-        let dist: u16 = rest
+        let dist: i32 = rest
             .parse()
             .map_err(|_| anyhow::anyhow!("Invalid distance in '{s}'"))?;
 
         match dir {
-            "L" => Ok(Self(-1, dist)),
-            "R" => Ok(Self(1, dist)),
+            "L" => Ok(Self(-dist)),
+            "R" => Ok(Self(dist)),
             other => bail!("Unknown direction '{other}' in '{s}'"),
         }
     }
@@ -30,15 +30,21 @@ pub fn solve(input: &str) -> Result<(String, String)> {
 
     let mut dial: i32 = 50;
 
-    for Instruction(sign, value) in instructions {
-        for _ in 0..value {
-            dial += sign;
-            dial = dial.rem_euclid(100);
+    for Instruction(value) in instructions {
+        let prev = dial;
 
-            if dial == 0 {
-                count2 += 1;
-            }
+        let hundreds = value.abs() / 100;
+        count2 += hundreds;
+
+        let shift = value % 100;
+        dial += shift;
+
+        if (dial <= 0 || 99 < dial) && prev != 0 {
+            count2 += 1;
         }
+
+        dial = dial.rem_euclid(100);
+
         if dial == 0 {
             count1 += 1;
         }
