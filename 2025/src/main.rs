@@ -4,7 +4,7 @@ use anyhow::{Context, Result, bail};
 use clap::Parser;
 use time::OffsetDateTime;
 
-use aoc_2025::solutions::{day01, day02};
+use aoc_2025::solutions::{day01, day02, day03};
 
 #[derive(Parser, Debug)]
 pub struct Args {
@@ -81,6 +81,7 @@ fn main() -> Result<()> {
     let (part1, part2) = match day {
         1 => day01::solve(&input)?,
         2 => day02::solve(&input)?,
+        3 => day03::solve(&input)?,
         _ => bail!("Day {day} not implemented"),
     };
 
