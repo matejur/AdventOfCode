@@ -1,5 +1,7 @@
 use anyhow::Result;
 
+use crate::day_test;
+
 fn joltage(bank: &[u32], wanted_on: usize) -> usize {
     let mut to_remove = bank.len() - wanted_on;
     let mut bank = Vec::from(bank);
@@ -37,3 +39,10 @@ pub fn solve(input: &str) -> Result<(String, String)> {
     }
     Ok((count1.to_string(), count2.to_string()))
 }
+
+day_test!(
+    day03_test,
+    3,
+    example = ("357", "3121910778619"),
+    input = ("17324", "171846613143331")
+);

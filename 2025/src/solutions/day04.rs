@@ -1,5 +1,7 @@
 use anyhow::Result;
 
+use crate::day_test;
+
 const OFF: [(isize, isize); 8] = [
     (-1, -1),
     (0, -1),
@@ -84,3 +86,10 @@ pub fn solve(input: &str) -> Result<(String, String)> {
 
     Ok((count1.to_string(), count2.to_string()))
 }
+
+day_test!(
+    day04_test,
+    4,
+    example = ("13", "43"),
+    input = ("1486", "9024")
+);

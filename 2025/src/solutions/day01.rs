@@ -1,6 +1,8 @@
 use anyhow::{Result, bail};
 use std::str::FromStr;
 
+use crate::day_test;
+
 #[derive(Debug)]
 struct Instruction(i32);
 
@@ -52,3 +54,5 @@ pub fn solve(input: &str) -> Result<(String, String)> {
 
     Ok((count1.to_string(), count2.to_string()))
 }
+
+day_test!(day01_test, 1, example = ("3", "6"), input = ("997", "5978"));

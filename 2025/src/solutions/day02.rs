@@ -1,5 +1,7 @@
 use anyhow::{Context, Result};
 
+use crate::day_test;
+
 #[derive(Debug)]
 struct Range {
     start: i64,
@@ -85,3 +87,10 @@ pub fn solve(input: &str) -> Result<(String, String)> {
 
     Ok((part1.to_string(), part2.to_string()))
 }
+
+day_test!(
+    day02_test,
+    2,
+    example = ("1227775554", "4174379265"),
+    input = ("35367539282", "45814076230")
+);
