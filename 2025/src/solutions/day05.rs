@@ -23,7 +23,7 @@ impl Range {
     }
 }
 
-fn count_fresh(ranges: &mut Vec<Range>) -> u64 {
+fn count_fresh(ranges: &mut [Range]) -> u64 {
     ranges.sort_unstable();
 
     let mut res = ranges[0].end - ranges[0].start + 1;
@@ -55,7 +55,7 @@ pub fn solve(input: &str) -> Result<(String, String)> {
     let mut count2 = 0;
 
     for line in input.lines() {
-        if line == "" {
+        if line.is_empty() {
             count2 = count_fresh(&mut ranges);
             reading_ranges = false;
             continue;

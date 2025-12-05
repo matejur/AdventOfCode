@@ -38,11 +38,7 @@ pub fn solve(input: &str) -> Result<(String, String)> {
     let width = input.lines().next().unwrap().len();
     let height = input.lines().count();
 
-    let mut grid: Vec<u8> = input
-        .lines()
-        .flat_map(|line| line.as_bytes())
-        .copied()
-        .collect();
+    let mut grid: Vec<u8> = input.lines().flat_map(str::as_bytes).copied().collect();
 
     let mut next = grid.clone();
 
