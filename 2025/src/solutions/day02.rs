@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use anyhow::{Context, Result};
 
 use crate::day_test;
@@ -18,56 +20,67 @@ impl Range {
         })
     }
 
-    fn count1(&self) -> i64 {
-        let mut res = 0;
+    fn count(&self, all_block_sizes: bool) -> i64 {
+        let start_digits = self.start.ilog10() + 1;
+        let end_digits = self.end.ilog10() + 1;
 
-        for val in self.start..=self.end {
-            let digits = val.ilog10() + 1;
+        if start_digits < end_digits {
+            let r1 = Range {
+                start: self.start,
+                end: 10i64.pow(end_digits - 1) - 1,
+            };
 
-            if digits % 2 == 1 {
-                continue;
-            }
+            let r2 = Range {
+                start: 10i64.pow(end_digits - 1),
+                end: self.end,
+            };
 
-            let half = digits / 2;
-            let pow = 10_i64.pow(half);
-
-            let left = val / pow;
-            let right = val % pow;
-
-            if left == right {
-                res += val;
-            }
+            return r1.count(all_block_sizes) + r2.count(all_block_sizes);
         }
 
-        res
-    }
+        let block_sizes = if all_block_sizes {
+            block_sizes(start_digits)
+        } else {
+            if start_digits % 2 == 1 {
+                return 0;
+            }
+            vec![start_digits / 2]
+        };
 
-    fn count2(&self) -> i64 {
         let mut res = 0;
-        for val in self.start..=self.end {
-            let digits = val.ilog10() + 1;
-            let pow_cache = |k| 10_i64.pow(k);
+        let mut seen = HashSet::new();
 
-            'divisors: for d in divisors(digits) {
-                let block = val % pow_cache(d);
-                let blocks = digits / d;
+        for block in block_sizes {
+            let pow = 10i64.pow(start_digits - block);
 
-                for i in 1..blocks {
-                    let part = (val / pow_cache(i * d)) % pow_cache(d);
-                    if part != block {
-                        continue 'divisors;
-                    }
+            let start_block = self.start / pow;
+            let end_block = self.end / pow;
+
+            for val in start_block..=end_block {
+                let recons = reconstruct(val, block, start_digits);
+                if self.start <= recons && recons <= self.end && !seen.contains(&recons) {
+                    res += recons;
+                    seen.insert(recons);
                 }
-
-                res += val;
-                break;
             }
         }
+
         res
     }
 }
 
-fn divisors(n: u32) -> Vec<u32> {
+fn reconstruct(block: i64, size: u32, all_digits: u32) -> i64 {
+    let mut out = 0;
+    let pow = 10i64.pow(size);
+    for _ in 0..all_digits / size {
+        out *= pow;
+        out += block;
+    }
+
+    out
+}
+
+fn block_sizes(n: u32) -> Vec<u32> {
     let mut results = Vec::new();
 
     for d in 1..n {
@@ -82,8 +95,8 @@ fn divisors(n: u32) -> Vec<u32> {
 pub fn solve(input: &str) -> Result<(String, String)> {
     let ranges: Vec<Range> = input.split(",").map(Range::new).collect::<Result<_>>()?;
 
-    let part1: i64 = ranges.iter().map(Range::count1).sum();
-    let part2: i64 = ranges.iter().map(Range::count2).sum();
+    let part1: i64 = ranges.iter().map(|r| r.count(false)).sum();
+    let part2: i64 = ranges.iter().map(|r| r.count(true)).sum();
 
     Ok((part1.to_string(), part2.to_string()))
 }
