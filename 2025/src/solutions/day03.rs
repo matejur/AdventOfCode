@@ -4,21 +4,21 @@ use crate::day_test;
 
 fn joltage(bank: &[u32], wanted_on: usize) -> usize {
     let mut to_remove = bank.len() - wanted_on;
-    let mut bank = Vec::from(bank);
+    let mut stack = Vec::new();
 
-    while to_remove > 0 {
-        let len = bank.len();
-
-        for i in 0..len - 1 {
-            if bank[i] < bank[i + 1] {
-                bank.remove(i);
-                break;
-            }
+    for &batt in bank {
+        while !stack.is_empty()
+            && to_remove > 0
+            && *stack.last().expect("Stack is not empty") < batt
+        {
+            stack.pop();
+            to_remove -= 1;
         }
-        to_remove -= 1;
+        stack.push(batt);
     }
 
-    bank.iter()
+    stack
+        .iter()
         .take(wanted_on)
         .enumerate()
         .map(|(i, bat)| *bat as usize * 10_usize.pow((wanted_on - i - 1) as u32))
