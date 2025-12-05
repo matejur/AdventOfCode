@@ -11,6 +11,8 @@ pub struct Args {
     pub day: Option<u8>,
     #[arg(short, long)]
     pub example: bool,
+    #[arg(short, long)]
+    pub all: bool,
 }
 
 fn download_input(day: u8, path: &str) -> Result<String> {
@@ -59,19 +61,8 @@ fn get_example(day: u8) -> Result<String> {
     Ok(example)
 }
 
-fn main() -> Result<()> {
-    let args = Args::parse();
-
-    let day = match args.day {
-        Some(day) => day,
-        None => {
-            let day = OffsetDateTime::now_utc().day();
-            eprintln!("Day not provided, running day {day}");
-            day
-        }
-    };
-
-    let input = if args.example {
+fn run_day(day: u8, example: bool) -> Result<()> {
+    let input = if example {
         get_example(day)?
     } else {
         get_input(day)?
@@ -89,6 +80,29 @@ fn main() -> Result<()> {
 
     println!("Part 1: {part1}");
     println!("Part 2: {part2}");
+
+    Ok(())
+}
+
+fn main() -> Result<()> {
+    let args = Args::parse();
+
+    if args.all {
+        for day in 1..=12 {
+            println!("========== Day {:02} ==========", day);
+            run_day(day, args.example)?;
+        }
+    } else {
+        let day = match args.day {
+            Some(day) => day,
+            None => {
+                let day = OffsetDateTime::now_utc().day();
+                eprintln!("Day not provided, running day {day}");
+                day
+            }
+        };
+        run_day(day, args.example)?;
+    }
 
     Ok(())
 }
