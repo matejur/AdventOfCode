@@ -1,6 +1,5 @@
-use anyhow::Result;
-
 use crate::day_test;
+use anyhow::Result;
 
 const OFF: [(isize, isize); 8] = [
     (-1, -1),
@@ -13,71 +12,61 @@ const OFF: [(isize, isize); 8] = [
     (1, 1),
 ];
 
-fn count_rolls(x: usize, y: usize, grid: &[u8], width: usize, height: usize) -> u32 {
-    let x = x as isize;
-    let y = y as isize;
-    let w = width as isize;
-    let h = height as isize;
+pub fn solve(input: &str) -> Result<(String, String)> {
+    let raw: Vec<&[u8]> = input.lines().map(str::as_bytes).collect();
+    let h = raw.len();
+    let w = raw[0].len();
 
-    let mut count = 0;
+    let pw = w + 2;
+    let ph = h + 2;
 
-    for &(dx, dy) in &OFF {
-        let xx = x + dx;
-        let yy = y + dy;
+    let mut pad = vec![0u8; pw * ph];
 
-        if xx >= 0 && xx < w && yy >= 0 && yy < h {
-            let idx = yy * w + xx;
-            count += (grid[idx as usize] == b'@') as u32;
+    for y in 0..h {
+        for x in 0..w {
+            if raw[y][x] == b'@' {
+                pad[(y + 1) * pw + (x + 1)] = 1;
+            }
         }
     }
 
-    count
-}
+    let mut count = vec![0u8; pw * ph];
+    let mut to_remove = Vec::new();
 
-pub fn solve(input: &str) -> Result<(String, String)> {
-    let width = input.lines().next().unwrap().len();
-    let height = input.lines().count();
-
-    let mut grid: Vec<u8> = input.lines().flat_map(str::as_bytes).copied().collect();
-
-    let mut next = grid.clone();
-
-    let mut count1 = 0;
-    let mut count2 = 0;
-    let mut first = true;
-
-    loop {
-        let mut changed = false;
-
-        for y in 0..height {
-            for x in 0..width {
-                let idx = y * width + x;
-                if grid[idx] == b'@' {
-                    let rolls = count_rolls(x, y, &grid, width, height);
-
-                    let stays_alive = rolls >= 4;
-                    next[idx] = b'.' + (stays_alive as u8) * (b'@' - b'.');
-
-                    if !stays_alive {
-                        if first {
-                            count1 += 1;
-                        }
-                        count2 += 1;
-
-                        changed = true;
-                    }
-                } else {
-                    next[idx] = b'.';
+    for y in 1..=h {
+        for x in 1..=w {
+            if pad[y * pw + x] == 1 {
+                let mut c = 0;
+                for (dx, dy) in OFF {
+                    let nx = (x as isize + dx) as usize;
+                    let ny = (y as isize + dy) as usize;
+                    c += pad[ny * pw + nx];
+                }
+                count[y * pw + x] = c;
+                if c < 4 {
+                    to_remove.push((x, y));
                 }
             }
         }
+    }
 
-        if !changed {
-            break;
+    let count1 = to_remove.len();
+    let mut count2 = 0;
+
+    while let Some((x, y)) = to_remove.pop() {
+        count2 += 1;
+
+        for (dx, dy) in OFF {
+            let nx = (x as isize + dx) as usize;
+            let ny = (y as isize + dy) as usize;
+            let idx = ny * pw + nx;
+
+            if count[idx] == 4 {
+                to_remove.push((nx, ny));
+            }
+
+            count[idx] = count[idx].saturating_sub(1);
         }
-
-        std::mem::swap(&mut grid, &mut next);
-        first = false;
     }
 
     Ok((count1.to_string(), count2.to_string()))
