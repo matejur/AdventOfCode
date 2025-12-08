@@ -1,5 +1,4 @@
 use std::{
-    cell::RefCell,
     cmp::Ordering,
     collections::{BinaryHeap, HashMap},
 };
@@ -9,27 +8,28 @@ use anyhow::{Context, Result};
 use crate::day_test;
 
 #[derive(Debug)]
-struct Pair<'a> {
-    first: &'a JunctionBox,
-    second: &'a JunctionBox,
+
+struct Pair {
+    first: usize,
+    second: usize,
     distance: i64,
 }
 
-impl<'a> PartialEq for Pair<'a> {
+impl PartialEq for Pair {
     fn eq(&self, other: &Self) -> bool {
         self.distance == other.distance
     }
 }
 
-impl<'a> Eq for Pair<'a> {}
+impl Eq for Pair {}
 
-impl<'a> PartialOrd for Pair<'a> {
+impl PartialOrd for Pair {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<'a> Ord for Pair<'a> {
+impl Ord for Pair {
     fn cmp(&self, other: &Self) -> Ordering {
         self.distance.cmp(&other.distance).reverse()
     }
@@ -40,7 +40,7 @@ struct JunctionBox {
     x: i64,
     y: i64,
     z: i64,
-    circuit_idx: RefCell<usize>,
+    idx: usize,
 }
 
 impl JunctionBox {
@@ -51,7 +51,7 @@ impl JunctionBox {
             x: numbers.next().context("Malformed input")?.parse()?,
             y: numbers.next().context("Malformed input")?.parse()?,
             z: numbers.next().context("Malformed input")?.parse()?,
-            circuit_idx: id.into(),
+            idx: id,
         })
     }
 
@@ -72,46 +72,69 @@ pub fn solve(input: &str) -> Result<(String, String)> {
         .collect::<Result<Vec<_>>>()?;
 
     let mut circuits: HashMap<usize, Vec<&JunctionBox>> = HashMap::new();
+    let mut box_to_circuit: Vec<usize> = (0..boxes.len()).collect();
     for (i, box_) in boxes.iter().enumerate() {
         circuits.insert(i, vec![&box_]);
     }
 
-    let mut heap = BinaryHeap::new();
+    let mut vec = Vec::with_capacity(boxes.len() * (boxes.len() - 1) / 2);
+
     for i in 0..boxes.len() {
         for j in i + 1..boxes.len() {
             let first = &boxes[i];
             let second = &boxes[j];
-            let distance = first.dist_sqr(second);
-
-            heap.push(Pair {
-                first,
-                second,
-                distance,
+            vec.push(Pair {
+                distance: first.dist_sqr(second),
+                first: i,
+                second: j,
             });
         }
     }
 
+    let mut heap = BinaryHeap::from(vec);
+
     let mut connections_to_make = if boxes.len() == 20 { 10 } else { 1000 };
-    while connections_to_make > 0 {
+    let mut count1 = 0;
+    let count2;
+
+    loop {
+        if connections_to_make == 0 {
+            let mut counts = circuits
+                .iter()
+                .map(|(_, circuit)| circuit.len())
+                .collect::<Vec<_>>();
+            counts.sort();
+
+            count1 = counts.iter().rev().take(3).product();
+        }
+
         let pair = heap.pop().context("Malformed input")?;
         connections_to_make -= 1;
 
+        let box1 = &boxes[pair.first];
+        let box2 = &boxes[pair.second];
+
+        let first_box_circuit_idx = box_to_circuit[box1.idx];
+        let second_box_citcuit_idx = box_to_circuit[box2.idx];
         // Already in the same circuit
-        if pair.first.circuit_idx == pair.second.circuit_idx {
+
+        if first_box_circuit_idx == second_box_citcuit_idx {
             continue;
         }
 
         // Join them together
-        let first_idx = *pair.first.circuit_idx.borrow();
-        let second_idx = *pair.second.circuit_idx.borrow();
-
-        let min_idx = first_idx.min(second_idx);
-        let max_idx = first_idx.max(second_idx);
+        let min_idx = first_box_circuit_idx.min(second_box_citcuit_idx);
+        let max_idx = first_box_circuit_idx.max(second_box_citcuit_idx);
 
         let mut max_circuit_boxes = circuits.remove(&max_idx).context("Malformed")?;
 
+        if circuits.len() == 1 {
+            count2 = box1.x * box2.x;
+            break;
+        }
+
         for b in &max_circuit_boxes {
-            *b.circuit_idx.borrow_mut() = min_idx;
+            box_to_circuit[b.idx] = min_idx;
         }
 
         circuits
@@ -119,42 +142,6 @@ pub fn solve(input: &str) -> Result<(String, String)> {
             .context("Malformed")?
             .append(&mut max_circuit_boxes);
     }
-
-    let mut counts = circuits
-        .iter()
-        .map(|(_, circuit)| circuit.len())
-        .collect::<Vec<_>>();
-    counts.sort();
-
-    let count1: usize = counts.iter().rev().take(3).product();
-    let count2 = loop {
-        let pair = heap.pop().context("Malformed input")?;
-
-        if pair.first.circuit_idx == pair.second.circuit_idx {
-            continue;
-        }
-
-        // Join them together
-        let first_idx = *pair.first.circuit_idx.borrow();
-        let second_idx = *pair.second.circuit_idx.borrow();
-
-        let min_idx = first_idx.min(second_idx);
-        let max_idx = first_idx.max(second_idx);
-
-        let mut max_circuit_boxes = circuits.remove(&max_idx).context("Malformed")?;
-
-        if circuits.len() == 1 {
-            break pair.first.x * pair.second.x;
-        }
-        for b in &max_circuit_boxes {
-            *b.circuit_idx.borrow_mut() = min_idx;
-        }
-
-        circuits
-            .get_mut(&min_idx)
-            .context("Malformed")?
-            .append(&mut max_circuit_boxes);
-    };
 
     Ok((count1.to_string(), count2.to_string()))
 }
