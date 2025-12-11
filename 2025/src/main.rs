@@ -4,7 +4,9 @@ use anyhow::{Context, Result, bail};
 use clap::Parser;
 use time::OffsetDateTime;
 
-use aoc_2025::solutions::{day01, day02, day03, day04, day05, day06, day07, day08, day09, day10};
+use aoc_2025::solutions::{
+    day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11,
+};
 
 #[derive(Parser, Debug)]
 pub struct Args {
@@ -80,6 +82,7 @@ fn run_day(day: u8, example: bool) -> Result<()> {
         8 => day08::solve(input)?,
         9 => day09::solve(input)?,
         10 => day10::solve(input)?,
+        11 => day11::solve(input)?,
         _ => bail!("Day {day} not implemented"),
     };
 
