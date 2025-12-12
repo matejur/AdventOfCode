@@ -5,7 +5,7 @@ use clap::Parser;
 use time::OffsetDateTime;
 
 use aoc_2025::solutions::{
-    day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11,
+    day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12,
 };
 
 #[derive(Parser, Debug)]
@@ -83,6 +83,7 @@ fn run_day(day: u8, example: bool) -> Result<()> {
         9 => day09::solve(input)?,
         10 => day10::solve(input)?,
         11 => day11::solve(input)?,
+        12 => day12::solve(input)?,
         _ => bail!("Day {day} not implemented"),
     };
 
