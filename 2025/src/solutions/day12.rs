@@ -27,7 +27,13 @@ pub fn solve(input: &str) -> Result<(String, String)> {
 
         count1 += available_area / present_area;
     }
-    Ok((count1.to_string(), "".to_string()))
+    Ok((count1.to_string(), "FREEBIE".to_string()))
 }
 
-day_test!(day12_test, 12, example = ("", ""), input = ("", ""));
+// The example is not solved properly, the answer should be 2 not 3
+day_test!(
+    day12_test,
+    12,
+    example = ("3", "FREEBIE"),
+    input = ("463", "FREEBIE")
+);
