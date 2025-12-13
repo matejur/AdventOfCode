@@ -1,4 +1,4 @@
-use std::{collections::HashMap, i64, usize};
+use std::collections::HashMap;
 
 use anyhow::{Context, Result};
 
@@ -168,10 +168,8 @@ pub fn solve(input: &str) -> Result<(String, String)> {
                 - compressed_area_grid[y1 * width + x2]
                 - compressed_area_grid[y2 * width + x1];
 
-            if c1.compressed_area(c2) == actual_area {
-                if area > count2 {
-                    count2 = area;
-                }
+            if c1.compressed_area(c2) == actual_area && area > count2 {
+                count2 = area;
             }
         }
     }

@@ -84,7 +84,7 @@ fn block_sizes(n: u32) -> Vec<u32> {
     let mut results = Vec::new();
 
     for d in 1..n {
-        if n % d == 0 {
+        if n.is_multiple_of(d) {
             results.push(d);
         }
     }

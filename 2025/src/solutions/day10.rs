@@ -26,14 +26,20 @@ impl Machine {
             .as_bytes();
 
         let mut wanted_lights = 0;
-        for i in 1..light_diagram.len() - 1 {
-            wanted_lights |= ((light_diagram[i] == b'#') as u16) << (i - 1);
+        for (i, &item) in light_diagram
+            .iter()
+            .enumerate()
+            .take(light_diagram.len() - 1)
+            .skip(1)
+        {
+            wanted_lights |= ((item == b'#') as u16) << (i - 1);
         }
 
         let mut buttons_bitmask = Vec::new();
         let mut buttons = Vec::new();
         let mut joltages = Vec::new();
-        while let Some(part) = parts.next() {
+
+        for part in parts {
             let is_button = part.chars().nth(0).context("Malformed input")? == '(';
             let part = &part[1..part.len() - 1];
             let digits = part.split(',').map(|num| num.parse::<u16>());
@@ -74,11 +80,11 @@ impl Machine {
                 matrix[*row as usize][i] = Fraction::from_int(1);
             }
         }
-        matrix.to_kinda_rref();
+        matrix.reduce_to_rref();
 
         Ok(Self {
             wanted_lights,
-            buttons_bitmask: buttons_bitmask,
+            buttons_bitmask,
             equations: matrix,
             max_button_presses,
         })
@@ -195,7 +201,7 @@ impl Matrix {
         }
     }
 
-    fn to_kinda_rref(&mut self) {
+    fn reduce_to_rref(&mut self) {
         let mut lead = 0;
 
         // println!("BEFORE:\n{self}");
@@ -313,17 +319,15 @@ fn part2(machine: &Machine) -> i64 {
     let mut A = vec![vec![Fraction::zero(); c]; r];
     let mut b = vec![Fraction::zero(); r];
 
-    for i in 0..r {
-        for j in 0..c {
-            A[i][j] = matrix[i][j];
-        }
+    for (i, row) in A.iter_mut().enumerate().take(r) {
+        row[..c].copy_from_slice(&matrix[i][..c]);
         b[i] = matrix[i][c];
     }
 
     let mut pivots = vec![None; c];
-    for i in 0..r {
+    for (i, row) in A.iter_mut().enumerate().take(r) {
         for j in 0..c {
-            if A[i][j] == Fraction::one() && (0..j).all(|k| A[i][k] == Fraction::zero()) {
+            if row[j] == Fraction::one() && (0..j).all(|k| row[k] == Fraction::zero()) {
                 pivots[j] = Some(i);
                 break;
             }
@@ -333,7 +337,7 @@ fn part2(machine: &Machine) -> i64 {
     let basic: Vec<usize> = (0..c).filter(|&j| pivots[j].is_some()).collect();
     let free: Vec<usize> = (0..c).filter(|&j| pivots[j].is_none()).collect();
 
-    if free.len() == 0 {
+    if free.is_empty() {
         return b.iter().map(|f| f.num).sum();
     }
 

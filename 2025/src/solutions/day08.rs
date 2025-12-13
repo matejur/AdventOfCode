@@ -100,8 +100,8 @@ pub fn solve(input: &str) -> Result<(String, String)> {
     loop {
         if connections_to_make == 0 {
             let mut counts = circuits
-                .iter()
-                .map(|(_, circuit)| circuit.len())
+                .values()
+                .map(|circuit| circuit.len())
                 .collect::<Vec<_>>();
             counts.sort();
 
