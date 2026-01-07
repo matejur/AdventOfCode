@@ -1,25 +1,12 @@
 use std::collections::VecDeque;
 
 use anyhow::{Context, Result};
-const MAX_PARAMS: usize = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum ParameterMode {
     Position,
     Immediate,
-}
-
-impl ParameterMode {
-    fn from_instruction(inst: i64) -> [ParameterMode; MAX_PARAMS] {
-        let mut modes = [ParameterMode::Position; MAX_PARAMS];
-        let mut inst = inst / 100;
-        for i in 0..MAX_PARAMS {
-            modes[i] = (inst % 10).into();
-            inst /= 10;
-        }
-
-        modes
-    }
+    Relative,
 }
 
 impl From<i64> for ParameterMode {
@@ -27,6 +14,7 @@ impl From<i64> for ParameterMode {
         match value {
             0 => Self::Position,
             1 => Self::Immediate,
+            2 => Self::Relative,
             v => panic!("Invalid parameter mode: {v}"),
         }
     }
@@ -44,6 +32,7 @@ pub struct Intcode {
     memory: Vec<i64>,
     input: VecDeque<i64>,
     ip: usize,
+    relative_base: i64,
 }
 
 impl Intcode {
@@ -58,6 +47,7 @@ impl Intcode {
                 .collect::<Result<Vec<_>>>()?,
             ip: 0,
             input: VecDeque::new(),
+            relative_base: 0,
         })
     }
 
@@ -65,42 +55,65 @@ impl Intcode {
         loop {
             let instruction = self.memory[self.ip];
             let opcode = instruction % 100;
-            let modes = ParameterMode::from_instruction(instruction);
+
+            let mut inst = instruction / 100;
+            let m0 = (inst % 10).into();
+            inst /= 10;
+            let m1 = (inst % 10).into();
+            inst /= 10;
+            let m2 = (inst % 10).into();
 
             match opcode {
                 1 => {
-                    let v = self.load(0, modes) + self.load(1, modes);
-                    self.store(2, v);
+                    let v = self.load(0, m0) + self.load(1, m1);
+                    self.store(2, v, m2);
                     self.ip += 4;
                 }
                 2 => {
-                    let v = self.load(0, modes) * self.load(1, modes);
-                    self.store(2, v);
+                    let v = self.load(0, m0) * self.load(1, m1);
+                    self.store(2, v, m2);
                     self.ip += 4;
                 }
                 3 => match self.input.pop_front() {
                     Some(value) => {
-                        self.store(0, value);
+                        self.store(0, value, m0);
                         self.ip += 2;
                     }
                     None => return StopReason::InputNeeded,
                 },
                 4 => {
-                    let value = self.load(0, modes);
+                    let value = self.load(0, m0);
                     self.ip += 2;
                     return StopReason::Output(value);
                 }
-                5 => self.jump_if(modes, |v| v != 0),
-                6 => self.jump_if(modes, |v| v == 0),
+
+                5 => {
+                    if self.load(0, m0) != 0 {
+                        self.ip = self.load(1, m1) as usize;
+                    } else {
+                        self.ip += 3;
+                    }
+                }
+                6 => {
+                    if self.load(0, m0) == 0 {
+                        self.ip = self.load(1, m1) as usize;
+                    } else {
+                        self.ip += 3;
+                    }
+                }
                 7 => {
-                    let v = (self.load(0, modes) < self.load(1, modes)) as i64;
-                    self.store(2, v);
+                    let v = (self.load(0, m0) < self.load(1, m1)) as i64;
+                    self.store(2, v, m2);
                     self.ip += 4;
                 }
                 8 => {
-                    let v = (self.load(0, modes) == self.load(1, modes)) as i64;
-                    self.store(2, v);
+                    let v = (self.load(0, m0) == self.load(1, m1)) as i64;
+                    self.store(2, v, m2);
                     self.ip += 4;
+                }
+                9 => {
+                    self.relative_base += self.load(0, m0);
+                    self.ip += 2;
                 }
                 99 => return StopReason::Halted,
                 op => panic!("Unknown opcode: {op}"),
@@ -108,30 +121,30 @@ impl Intcode {
         }
     }
 
-    fn jump_if<F>(&mut self, modes: [ParameterMode; MAX_PARAMS], cond: F)
-    where
-        F: Fn(i64) -> bool,
-    {
-        let test = self.load(0, modes);
-
-        if cond(test) {
-            self.ip = self.load(1, modes) as usize;
-        } else {
-            self.ip += 3;
-        }
-    }
-
-    fn load(&self, param_idx: usize, modes: [ParameterMode; MAX_PARAMS]) -> i64 {
+    fn load(&self, param_idx: usize, mode: ParameterMode) -> i64 {
         let param = self.memory[self.ip + param_idx + 1];
-        match modes[param_idx] {
-            ParameterMode::Position => self.memory[param as usize],
-            ParameterMode::Immediate => param,
-        }
+        let addr = match mode {
+            ParameterMode::Relative => (self.relative_base + param) as usize,
+            ParameterMode::Position => param as usize,
+            ParameterMode::Immediate => return param,
+        };
+
+        self.memory.get(addr).copied().unwrap_or(0)
     }
 
-    fn store(&mut self, param_idx: usize, value: i64) {
-        // Writes always treat the parameter as an address
-        let addr = self.memory[self.ip + param_idx + 1] as usize;
+    fn store(&mut self, param_idx: usize, value: i64, mode: ParameterMode) {
+        let mut addr = self.memory[self.ip + param_idx + 1];
+
+        if let ParameterMode::Relative = mode {
+            addr += self.relative_base;
+        }
+
+        let addr = addr as usize;
+
+        if addr >= self.memory.len() {
+            self.memory.resize(addr + 1, 0);
+        }
+
         self.memory[addr] = value;
     }
 
@@ -183,6 +196,7 @@ mod intcode_tests {
 
         Ok(())
     }
+
     #[test]
     fn test_jumps_and_comparisons() -> Result<()> {
         let base = Intcode::new(
@@ -200,6 +214,54 @@ mod intcode_tests {
         let mut vm = base.clone();
         vm.push_input(9);
         assert_eq!(vm.run(), StopReason::Output(1001));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_relative_mode_quine() -> Result<()> {
+        let program = "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99";
+        let mut vm = Intcode::new(program)?;
+
+        let mut output = Vec::new();
+        loop {
+            match vm.run() {
+                StopReason::Output(v) => output.push(v),
+                StopReason::Halted => break,
+                StopReason::InputNeeded => panic!("Unexpected input request"),
+            }
+        }
+
+        let expected: Vec<i64> = program.split(',').map(|s| s.parse().unwrap()).collect();
+
+        assert_eq!(output, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_relative_mode_large_number() -> Result<()> {
+        let mut vm = Intcode::new("1102,34915192,34915192,7,4,7,99,0")?;
+
+        match vm.run() {
+            StopReason::Output(v) => {
+                assert_eq!(v.to_string().len(), 16);
+            }
+            _ => panic!("Expected output"),
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_relative_mode_large_immediate() -> Result<()> {
+        let mut vm = Intcode::new("104,1125899906842624,99")?;
+
+        match vm.run() {
+            StopReason::Output(v) => {
+                assert_eq!(v, 1125899906842624);
+            }
+            _ => panic!("Expected output"),
+        }
 
         Ok(())
     }

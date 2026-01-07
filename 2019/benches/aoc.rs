@@ -25,3 +25,7 @@ bench_day!(day02);
 bench_day!(day03);
 bench_day!(day04);
 bench_day!(day05);
+bench_day!(day06);
+bench_day!(day07);
+bench_day!(day08);
+bench_day!(day09);
