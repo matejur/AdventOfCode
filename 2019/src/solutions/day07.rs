@@ -3,13 +3,13 @@ use itertools::Itertools;
 
 use crate::{
     day_test,
-    intcode::{Intcode, StopReason},
+    intcode::{Computer, StopReason},
 };
 
 const AMP_COUNT: usize = 5;
 
 pub fn solve(input: &str) -> Result<(String, String)> {
-    let base = Intcode::new(input)?;
+    let base = Computer::new(input)?;
     let part1 = (0..=4)
         .permutations(AMP_COUNT)
         .map(|settings| {
@@ -30,7 +30,7 @@ pub fn solve(input: &str) -> Result<(String, String)> {
     let part2 = (5..=9)
         .permutations(AMP_COUNT)
         .map(|settings| {
-            let mut vms: [Intcode; AMP_COUNT] = core::array::from_fn(|i| {
+            let mut vms: [Computer; AMP_COUNT] = core::array::from_fn(|i| {
                 let mut vm = base.clone();
                 vm.push_input(settings[i]);
                 vm

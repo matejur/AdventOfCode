@@ -28,14 +28,14 @@ pub enum StopReason {
 }
 
 #[derive(Clone, Debug)]
-pub struct Intcode {
+pub struct Computer {
     memory: Vec<i64>,
     input: VecDeque<i64>,
     ip: usize,
     relative_base: i64,
 }
 
-impl Intcode {
+impl Computer {
     pub fn new(input: &str) -> Result<Self> {
         Ok(Self {
             memory: input
@@ -177,6 +177,16 @@ impl Intcode {
 
         last_output
     }
+
+    pub fn run_to_next_output(&mut self) -> Option<i64> {
+        match self.run() {
+            StopReason::Output(v) => Some(v),
+            StopReason::InputNeeded => {
+                panic!("VM requested input, but none was provided");
+            }
+            StopReason::Halted => None,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -186,11 +196,11 @@ mod intcode_tests {
 
     #[test]
     fn test_param_mode() -> Result<()> {
-        let mut vm = Intcode::new("1002,4,3,4,33")?;
+        let mut vm = Computer::new("1002,4,3,4,33")?;
         vm.run();
         assert_eq!(vm.memory[4], 99);
 
-        let mut vm = Intcode::new("1101,100,-1,4,0")?;
+        let mut vm = Computer::new("1101,100,-1,4,0")?;
         vm.run();
         assert_eq!(vm.memory[4], 99);
 
@@ -199,7 +209,7 @@ mod intcode_tests {
 
     #[test]
     fn test_jumps_and_comparisons() -> Result<()> {
-        let base = Intcode::new(
+        let base = Computer::new(
             "3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99",
         )?;
 
@@ -221,7 +231,7 @@ mod intcode_tests {
     #[test]
     fn test_relative_mode_quine() -> Result<()> {
         let program = "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99";
-        let mut vm = Intcode::new(program)?;
+        let mut vm = Computer::new(program)?;
 
         let mut output = Vec::new();
         loop {
@@ -240,7 +250,7 @@ mod intcode_tests {
 
     #[test]
     fn test_relative_mode_large_number() -> Result<()> {
-        let mut vm = Intcode::new("1102,34915192,34915192,7,4,7,99,0")?;
+        let mut vm = Computer::new("1102,34915192,34915192,7,4,7,99,0")?;
 
         match vm.run() {
             StopReason::Output(v) => {
@@ -254,7 +264,7 @@ mod intcode_tests {
 
     #[test]
     fn test_relative_mode_large_immediate() -> Result<()> {
-        let mut vm = Intcode::new("104,1125899906842624,99")?;
+        let mut vm = Computer::new("104,1125899906842624,99")?;
 
         match vm.run() {
             StopReason::Output(v) => {

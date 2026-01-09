@@ -88,7 +88,7 @@ pub fn solve(input: &str) -> Result<(String, String)> {
     let mut part2 = i64::MAX;
     for seg1 in &wire1 {
         for seg2 in &wire2 {
-            if let Some((x, y, steps)) = seg1.intersect(&seg2) {
+            if let Some((x, y, steps)) = seg1.intersect(seg2) {
                 part1 = part1.min(x.abs() + y.abs());
                 part2 = part2.min(steps);
             }

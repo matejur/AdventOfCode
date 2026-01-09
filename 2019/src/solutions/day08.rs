@@ -27,7 +27,7 @@ impl From<char> for Color {
 pub fn solve(input: &str) -> Result<(String, String)> {
     let mut fewest_zeros = u32::MAX;
     let mut part1 = 0u32;
-    let mut image = vec![Color::Transparent; WIDTH * HEIGHT];
+    let mut image = [Color::Transparent; WIDTH * HEIGHT];
     for layer in &input.chars().chunks(WIDTH * HEIGHT) {
         let mut zeros = 0;
         let mut ones = 0;

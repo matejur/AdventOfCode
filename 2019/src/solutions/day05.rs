@@ -1,9 +1,9 @@
 use anyhow::Result;
 
-use crate::{day_test, intcode::Intcode};
+use crate::{day_test, intcode::Computer};
 
 pub fn solve(input: &str) -> Result<(String, String)> {
-    let base = Intcode::new(input)?;
+    let base = Computer::new(input)?;
 
     let mut vm = base.clone();
     vm.push_input(1);
