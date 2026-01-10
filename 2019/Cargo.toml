@@ -15,3 +15,6 @@ divan = "0.1.21"
 [[bench]]
 name = "aoc"
 harness = false
+
+[features]
+breakout_display = []

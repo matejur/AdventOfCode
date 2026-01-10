@@ -158,6 +158,10 @@ impl Computer {
         self
     }
 
+    pub fn set(&mut self, addr: usize, val: i64) {
+        self.memory[addr] = val;
+    }
+
     pub fn get_result(&self) -> i64 {
         self.memory[0]
     }
