@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, VecDeque};
 
 use anyhow::{Context, Result};
 
@@ -55,113 +55,106 @@ fn div_ceil(a: usize, b: usize) -> usize {
 }
 
 fn topological<'a>(reactions: &HashMap<&'a str, Reaction<'a>>) -> Vec<&'a str> {
-    let mut sorted = Vec::new();
-    let mut set = HashSet::from(["ORE"]);
+    let mut incoming = HashMap::new();
+    let mut graph: HashMap<&str, Vec<&str>> = HashMap::new();
 
-    let mut inp_to_out: HashMap<&str, Vec<&str>> = HashMap::new();
-    let mut num_incoming = HashMap::new();
     for reaction in reactions.values() {
-        num_incoming.insert(reaction.output.name, reaction.input.len() as i32);
+        incoming.insert(reaction.output.name, reaction.input.len());
         for inp in &reaction.input {
-            inp_to_out
+            graph
                 .entry(inp.name)
                 .or_default()
                 .push(reaction.output.name);
         }
     }
 
-    while let Some(&n) = set.iter().next() {
-        set.remove(n);
-        sorted.push(n);
+    let mut queue = VecDeque::from(["ORE"]);
+    let mut order = Vec::new();
 
-        for m in inp_to_out.get(n).unwrap_or(&vec![]) {
-            let v = num_incoming.get_mut(m).expect("Should contain inner");
-            *v -= 1;
-            if *v == 0 {
-                set.insert(m);
+    while let Some(n) = queue.pop_front() {
+        order.push(n);
+        if let Some(outputs) = graph.get(n) {
+            for &m in outputs {
+                let v = incoming.get_mut(m).unwrap();
+                *v -= 1;
+                if *v == 0 {
+                    queue.push_back(m);
+                }
             }
         }
     }
 
-    sorted
+    order
+}
+
+fn pop_highest_priority<'a>(
+    map: &mut HashMap<&'a str, usize>,
+    order_index: &HashMap<&'a str, usize>,
+) -> Option<(&'a str, usize)> {
+    let (&name, _) = map.iter().max_by_key(|(k, _)| order_index[*k])?;
+    let amount = map.remove(name).unwrap();
+    Some((name, amount))
 }
 
 fn ore_for_n_fuel<'a>(
     n: usize,
     reactions: &HashMap<&'a str, Reaction<'a>>,
-    order: &Vec<&str>,
+    order_index: &HashMap<&'a str, usize>,
 ) -> Result<usize> {
-    let mut to_make = vec![Chemical {
-        name: "FUEL",
-        amount: n,
-    }];
+    let mut to_make = HashMap::new();
+    to_make.insert("FUEL", n);
 
     let mut ore_needed = 0;
-    while let Some(chemical) = to_make.pop() {
-        if chemical.name == "ORE" {
-            ore_needed += chemical.amount;
+    while let Some((name, amount)) = pop_highest_priority(&mut to_make, order_index) {
+        if name == "ORE" {
+            ore_needed += amount;
             continue;
         }
 
-        let reaction = reactions
-            .get(chemical.name)
-            .context("All chemicals except ORE should be here")?;
-
-        let needed = chemical.amount;
-        let produced = reaction.output.amount;
-        let num_reactions = div_ceil(needed, produced);
+        let reaction = &reactions[name];
+        let times = div_ceil(amount, reaction.output.amount);
 
         for input in &reaction.input {
-            if let Some(r) = to_make.iter_mut().filter(|c| c.name == input.name).next() {
-                r.amount += input.amount * num_reactions;
-            } else {
-                to_make.push(Chemical {
-                    name: input.name,
-                    amount: input.amount * num_reactions,
-                });
-            }
+            *to_make.entry(input.name).or_insert(0) += input.amount * times;
         }
-        to_make.sort_unstable_by_key(|i| order.iter().position(|v| *v == i.name).unwrap());
     }
+
     Ok(ore_needed)
 }
 
 pub fn solve(input: &str) -> Result<(String, String)> {
-    let mut reactions = parse(input)?;
+    let reactions = parse(input)?;
     let order = topological(&reactions);
-    let _ = reactions
-        .values_mut()
-        .map(|r| {
-            r.input
-                .sort_unstable_by_key(|i| order.iter().position(|v| *v == i.name).unwrap());
-            r.input.reverse();
-        })
-        .collect::<Vec<_>>();
+    let order_index: HashMap<&str, usize> =
+        order.iter().enumerate().map(|(i, &c)| (c, i)).collect();
 
-    let part1 = ore_for_n_fuel(1, &reactions, &order)?;
+    let part1 = ore_for_n_fuel(1, &reactions, &order_index)?;
 
+    let threshold: usize = 1_000_000_000_000;
     let mut min = 1;
-    let mut max = 10_000_000;
+    let mut max = threshold;
 
     let part2 = loop {
-        let mid = (min + max) / 2;
-        let ore = ore_for_n_fuel(mid, &reactions, &order)?;
+        let mid = (min + max).div_ceil(2);
+        let ore = ore_for_n_fuel(mid, &reactions, &order_index)?;
 
-        if ore < 1000000000000 {
-            min = mid + 1;
+        if ore < threshold {
+            min = mid;
         } else {
-            max = mid;
+            max = mid - 1;
         }
 
         if min >= max {
-            if ore > 1000000000000 {
-                break mid - 1;
-            }
-            break mid;
+            break min;
         }
     };
 
     Ok((part1.to_string(), part2.to_string()))
 }
 
-day_test!(day_00, 0, example = ("", ""), input = ("", ""));
+day_test!(
+    day_14,
+    14,
+    example = ("2210736", "460664"),
+    input = ("628586", "3209254")
+);
