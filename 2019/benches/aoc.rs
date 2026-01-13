@@ -35,3 +35,4 @@ bench_day!(day12);
 bench_day!(day13);
 bench_day!(day14);
 bench_day!(day15);
+bench_day!(day16);
