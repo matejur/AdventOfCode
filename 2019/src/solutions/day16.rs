@@ -56,7 +56,31 @@ pub fn solve(input: &str) -> Result<(String, String)> {
         .map(|&c| (c as u8 + b'0') as char)
         .collect();
 
-    Ok((part1, "".to_string()))
+    let mut signal = input
+        .as_bytes()
+        .iter()
+        .map(|c| (c - b'0') as i32)
+        .collect::<Vec<_>>()
+        .repeat(10000);
+    let mut output = vec![0; signal.len()];
+    let offset: usize = signal[..7].iter().fold(0, |acc, &d| acc * 10 + d as usize);
+
+    for _ in 0..100 {
+        let mut sum = 0;
+        for i in (offset..signal.len()).rev() {
+            sum += signal[i];
+            output[i] = sum.abs() % 10;
+        }
+
+        std::mem::swap(&mut signal, &mut output);
+    }
+
+    let part2 = signal[offset..offset + 8]
+        .iter()
+        .map(|&c| (c as u8 + b'0') as char)
+        .collect();
+
+    Ok((part1, part2))
 }
 
-day_test!(day00_test, 0, example = ("", ""), input = ("", ""));
+day_test!(day16_test, 16, input = ("22122816", "41402171"));
