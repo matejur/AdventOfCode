@@ -30,7 +30,7 @@ pub enum StopReason {
 #[derive(Clone, Debug)]
 pub struct Computer {
     memory: Vec<i64>,
-    input: VecDeque<i64>,
+    pub input: VecDeque<i64>,
     ip: usize,
     relative_base: i64,
 }
@@ -185,9 +185,7 @@ impl Computer {
     pub fn run_to_next_output(&mut self) -> Option<i64> {
         match self.run() {
             StopReason::Output(v) => Some(v),
-            StopReason::InputNeeded => {
-                panic!("VM requested input, but none was provided");
-            }
+            StopReason::InputNeeded => None,
             StopReason::Halted => None,
         }
     }

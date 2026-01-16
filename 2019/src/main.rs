@@ -82,6 +82,7 @@ fn run_day(day: u8, example: bool) -> Result<()> {
         14 => solutions::day14::solve(input)?,
         15 => solutions::day15::solve(input)?,
         16 => solutions::day16::solve(input)?,
+        17 => solutions::day17::solve(input)?,
         _ => bail!("Day {day} not implemented"),
     };
 
